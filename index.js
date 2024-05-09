@@ -30,7 +30,7 @@ async function run() {
     await client.connect();
 
     const volunteerCollection = client.db('volunteerDB').collection('needsVolunteer');
-
+    const userCollection = client.db('volunteerDB').collection('userVolunteer')
 
     // Show the card in home page using this get operation
     app.get('/needsVolunteer', async(req, res) =>{
@@ -39,8 +39,21 @@ async function run() {
         res.send(result);
     })
 
+    // -----Add Post Section-------
+    app.get("/userCollection", async(req, res)=> {
+        const cursor = userCollection.find()
+        const result = await cursor.toArray();
+        res.send(result);
+    })
+    app.post('/userCollection', async(req, res) => {
+        const newVolunteer = req.body;
+        console.log(newVolunteer);
+        const result = await userCollection.insertOne(newVolunteer);
+        res.send(result);
+    });
+    // -----------------------------
 
-    
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
