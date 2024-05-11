@@ -32,7 +32,12 @@ async function run() {
 
     // Show the card in home page using this get operation
     app.get('/needsVolunteer', async(req, res) =>{
-        const cursor = volunteerCollection.find();
+        const {search} = req.query
+        let find = {}
+        if(search){
+          find.PostTitle = new RegExp(search, "i")
+        }
+        const cursor = volunteerCollection.find(find);
         const result = await cursor.toArray();
         res.send(result);
     })
@@ -57,6 +62,28 @@ async function run() {
       const id = req.params.id;
       const query = {_id: new ObjectId(id)}
       const result = await userCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.put("/userCollection/:id", async(req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)}
+      const options = {upsert: true};
+      const updateVolunteer = req.body;
+      const volunteer = {
+          $set: {
+            postTitle: updateVolunteer.postTitle, 
+            location: updateVolunteer.location,
+            volunteers_needed: updateVolunteer.volunteers_needed,
+            category: updateVolunteer.category ,
+            deadline: updateVolunteer.deadline ,
+            organizer_name: updateVolunteer.organizer_name ,
+            organizer_email: updateVolunteer.organizer_email ,
+            description: updateVolunteer.description ,
+            thumbnail: updateVolunteer.thumbnail ,
+          }
+      }
+      const result = await userCollection.updateOne(filter, volunteer, options);
       res.send(result);
     });
     // -----------------------
