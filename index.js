@@ -30,18 +30,26 @@ async function run() {
     const volunteerCollection = client.db('volunteerDB').collection('needsVolunteer');
     const submitCollection = client.db('volunteerDB').collection('submit')
 
-    // Show the card in home page using this get operation
-    app.get('/needsVolunteer', async(req, res) =>{
-        const {search} = req.query
-        let find = {}
-        if(search){
-          find.PostTitle = new RegExp(search, "i")
-        }
-        const cursor = volunteerCollection.find(find);
-        const result = await cursor.toArray();
-        res.send(result);
-    })
 
+    // Show the card in home page using this get operation
+    app.get('/needsVolunteer', async (req, res) => {
+      const { search, sort } = req.query;
+      let find = {};
+      const sortValue=parseInt(sort);
+      if (search) {
+          find.PostTitle = new RegExp(search, "i");
+      }
+      let cursor;
+      if(sortValue){
+        cursor = volunteerCollection.find(find).sort({"Deadline": sortValue})
+      }
+      else{
+        cursor = volunteerCollection.find(find);
+      }
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+  
     // -------------------
     app.get("/needsVolunteer/:id", async(req, res) => {
       const id = req.params.id;
