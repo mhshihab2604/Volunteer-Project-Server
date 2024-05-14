@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express();
@@ -7,7 +8,12 @@ const port = process.env.PORT || 5000;
 
 
 // middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173"  
+],
+credentials: true
+}));
 app.use(express.json());
 
 
@@ -30,6 +36,26 @@ async function run() {
     const volunteerCollection = client.db('volunteerDB').collection('needsVolunteer');
     const submitCollection = client.db('volunteerDB').collection('submit')
 
+
+    // auth related api
+    app.post('/jwt', async (req, res) => {
+      const user = req.body
+      console.log('user for token', user);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none'
+      })
+      .send({ success: true });
+    })
+    app.post('/logout', async (req, res) => {
+      const user = req.body;
+      console.log('logging out', user);
+      res.clearCookie('token', { maxAge: 0 }).send({ success: true })
+    })
+    // ----------------------------------
 
     // Show the card in home page using this get operation
     app.get('/needsVolunteer', async (req, res) => {
@@ -170,6 +196,3 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log(`Web Server is running on port: ${port}`);
 })
-
-
-
